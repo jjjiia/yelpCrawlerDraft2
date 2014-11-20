@@ -24,10 +24,10 @@ def download_yelp(row):
 	firstpageurl= "http://www.yelp.com/biz/"+row
 	print firstpageurl
 	soup = BeautifulSoup(urllib2.urlopen(firstpageurl).read())
-	name = soup.find("h1",{"class":"biz-page-title embossed-text-white"}).text.encode('utf-8').strip()
-	reviewCount = soup.find("span",{"itemprop":"reviewCount"}).text.encode('utf-8').strip()
+	name = soup.find("h1",{"class":"biz-page-title embossed-text-white"})
+	reviewCount = soup.find("span",{"itemprop":"reviewCount"})
 	rating = soup.find("meta",{"itemprop":"ratingValue"})
-	address = soup.address.text.encode('utf-8').strip()
+	address = soup.address
 	#coordinates = soup.find("div",{"class":"lightbox-map hidden"})["location"]
 	stations = soup.find_all("span",{"class":"transit-stop"})
 	
@@ -47,9 +47,9 @@ def download_yelp(row):
 		transit.append(text)
 		
 	restaurantListWriter.writerow([row,name,reviewCount,rating,address,transit])
-
+	time.sleep(1)
 	page_count = 1000
-	i = 1
+	i = 0
 	for i in range(page_count):
 		#print i
 		pageNumber = int(i)*20
@@ -57,31 +57,22 @@ def download_yelp(row):
 		url= "http://www.yelp.com/biz/"+row+"?start="+str(pageNumber)
 		print url
 		soup = BeautifulSoup(urllib2.urlopen(url).read())
-		reviews = soup.find("div",{"class":"column column-alpha main-section"})
-		li = reviews.find_all("div")
-		print len(li)
-		reviewListWriter.writerow([reviews])
+		reviews = soup.find_all("div",{"class":"review review--with-sidebar"})
+		#reviewListWriter.writerow([reviews])
+		print len(reviews)
 		if len(reviews)==0:
 			return
 		for review in reviews:
 			userPassportInfo = review.find("")
 			userName = review.find("li",{"class":"user-name"})
-			print len(userName)
-			print userName.text.encode('utf-8').strip()
 			userLocation = review.find("li",{"class":"user-location"})
-			print len(userLocation)
-			print userLocation.text.encode('utf-8').strip()
 			userFriends = review.find("li",{"class":"friend-count"})
-			print len(userFriends)
-			print userFriends.text.encode('utf-8').strip()
 			userReviewCount = review.find("li",{"class":"review-count"})
-			print len(userReviewCount)
-			print userReviewCount.text.encode('utf-8').strip()
 			
 			reviewDate = review.find("meta",{"itemprop":"datePublished"})
 			reviewRating = review.find("meta",{"itemprop":"ratingValue"})
-			reviewContent = review.find("p",{"itemprop":"description"}).text.encode('utf-8').strip()
-		#	reviewListWriter.writerow([row,userName,userLocation,userFriends,userReviewCount,reviewDate,reviewRating,reviewContent])
+			reviewContent = review.find("p",{"itemprop":"description"})
+			reviewListWriter.writerow([row,userName,userLocation,userFriends,userReviewCount,reviewDate,reviewRating,reviewContent])
 			#print [userName,userLocation,userFriends,userReviewCount,reviewDate,reviewRating,reviewContent]
 def checkForText(obj):
 	length = len(obj)
@@ -107,12 +98,13 @@ def buildLinksArray():
 				linksArray.append(row)
 				#call crawler?
 				download_yelp(row[0])
-				#save as finished
-
+				#save as finished				
 				finishedListFile = open("finished.csv","a+")
 				finishedListWriter = csv.writer(finishedListFile)
 				finishedListWriter.writerow(row)
 				print "next"
+				time.sleep(1)
+				
 				#break				
 				
 	return linksArray
