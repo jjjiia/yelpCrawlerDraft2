@@ -11,10 +11,10 @@ import os
 import time
 import random
 
-restaurantListFile = open("restaurant_info.csv","a+")
+restaurantListFile = open("foodbusiness_info.csv","a+")
 restaurantListWriter = csv.writer(restaurantListFile)
 
-reviewListFile = open("review_info.csv","a+")
+reviewListFile = open("foodbusiness_review_info.csv","a+")
 reviewListWriter = csv.writer(reviewListFile)
 
 #restaurantListWriter.writerow(["link","name","reviewCount","rating","address","coordinates","transit"])
@@ -90,8 +90,9 @@ def buildAlreadyFinishedArray():
 def buildLinksArray():
 	#call build finished
 	finishedLinksArray = buildAlreadyFinishedArray()
+	print len(finishedLinksArray)
 	linksArray = []
-	inputfile = open("combinedlinks_nodups_test.csv","r")
+	inputfile = open("boston_foodLinks.csv","r")
 	spamreader = csv.reader(inputfile)
 	for row in spamreader:
 			if row not in linksArray and row not in finishedLinksArray:
@@ -103,7 +104,7 @@ def buildLinksArray():
 				finishedListWriter = csv.writer(finishedListFile)
 				finishedListWriter.writerow(row)
 				print "next"
-				time.sleep(1)
+				time.sleep(5)
 				
 				#break				
 				
