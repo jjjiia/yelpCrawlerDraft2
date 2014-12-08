@@ -8,11 +8,11 @@ $(function() {
 		.defer(d3.json, "neighborhoods.geojson")
 		.defer(d3.json, "boston_streets.geojson")
 		.defer(d3.json, "somerville_streets.geojson")
-	
+		.defer(d3.json,"noreviewcontent.json")
 		.await(dataDidLoad);
 })
 
-function dataDidLoad(error,data,cambridge,boston,bostonStreets,somervilleStreets) {
+function dataDidLoad(error,restaurantList,cambridge,boston,bostonStreets,somervilleStreets,reviews) {
 	//console.log(line)	
 	//console.log(stops)
 	var width = 800;
@@ -31,9 +31,13 @@ function dataDidLoad(error,data,cambridge,boston,bostonStreets,somervilleStreets
 	drawStreets(bostonStreets,svg,width,height,projection,"bostonStreets")
 	drawStreets(somervilleStreets,svg,width,height,projection,"somervilleStreets")
 	
-	drawRestaurants(data,svg,width,height)
-	drawScatterPlot(data)
+	drawRestaurants(restaurantList,reviews,svg,width,height)
+	drawScatterPlot(restaurantList)
+	
+	reviewsByRestaurant(reviews,restaurant)
 }
+
+
 function drawScatterPlot(data){
 	var data = data;
 	//var width = 600;
@@ -114,7 +118,19 @@ yScale.domain([d3.min(data, yValue)-1, d3.max(data, yValue)+1]);
 	  .on("mouseover", function(d){console.log(d)})
 }
 
-function drawRestaurants(data, svg, width,height,projection){
+
+function reviewsByRestaurant(data,restaurant){
+	var data = data[restaurant]
+	//console.log(data[0])
+		console.log(data.length)
+		for(var i =0; i< data.length; i++){
+			//console.log(data[i])
+			rating = data[i][5]
+			
+		}
+	
+}
+function drawRestaurants(data,reviews, svg, width,height,projection){
 	var width = width;
 	var height = height;
 	var projection = d3.geo.mercator()
@@ -153,6 +169,7 @@ function drawRestaurants(data, svg, width,height,projection){
 		.attr("opacity", 0.2)
 		.on("mouseover", function(d){
 			d3.select("#chart-title").html(d.name+"</br>"+d.reviewCount+" Reviews</br>"+d.ratingCount+" Stars</br>"+d.address)
+			reviewsByRestaurant(reviews,d.link)
 		})
 }
 
