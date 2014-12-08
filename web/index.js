@@ -1,19 +1,24 @@
+//load neightborhoods, subways, and streets
+
 $(function() {
 	// Window has loaded
 	queue()
 		.defer(d3.csv,"restaurants.csv")
 		.defer(d3.json, "cambridge_roads.geojson")
-		.defer(d3.json, "boston.geojson")
+		.defer(d3.json, "neighborhoods.geojson")
+		.defer(d3.json, "boston_streets.geojson")
+		.defer(d3.json, "somerville_streets.geojson")
+	
 		.await(dataDidLoad);
 })
 
-function dataDidLoad(error, data, cambridge,boston) {
+function dataDidLoad(error,data,cambridge,boston,bostonStreets,somervilleStreets) {
 	//console.log(line)	
 	//console.log(stops)
-	var width = 950;
+	var width = 800;
 	var height = 800;
 	var projection = d3.geo.mercator()
-		.scale([480000])
+		.scale([450000])
 		.center([ -71.085,42.341])
 		.translate([width/2,height/2])
 	
@@ -21,8 +26,11 @@ function dataDidLoad(error, data, cambridge,boston) {
 			.append("svg")
 			.attr("width",width)
 			.attr("height",height);
-	drawStreets(cambridge,svg,width,height,projection)
-	drawStreets(boston,svg,width,height,projection)
+	drawStreets(cambridge,svg,width,height,projection, "cambridge")
+	drawStreets(boston,svg,width,height,projection,"boston")
+	drawStreets(bostonStreets,svg,width,height,projection,"bostonStreets")
+	drawStreets(somervilleStreets,svg,width,height,projection,"somervilleStreets")
+	
 	drawRestaurants(data,svg,width,height)
 	drawScatterPlot(data)
 }
@@ -38,8 +46,8 @@ function drawScatterPlot(data){
 		.domain([2,4])
 		.range(["#0000ff","#ff0000"])
 	var margin = {top: 40, right: 50, bottom: 30, left: 40},
-	    width = 600; - margin.left - margin.right,
-	    height = 800 - margin.top - margin.bottom;
+	    width = 400; - margin.left - margin.right,
+	    height = 400 - margin.top - margin.bottom;
 	var scatterPlot = d3.select("#charts")
 				.append("svg")
 				.attr("width", width + margin.left + margin.right)
@@ -81,7 +89,7 @@ yScale.domain([d3.min(data, yValue)-1, d3.max(data, yValue)+1]);
   scatterPlot.append("g")
       .attr("class", "y axis")
       .call(yAxis)
-    .append("text")
+      .append("text")
       .attr("class", "label")
       .attr("transform", "rotate(-90)")
       .attr("y", 6)
@@ -91,25 +99,26 @@ yScale.domain([d3.min(data, yValue)-1, d3.max(data, yValue)+1]);
 	  
  scatterPlot.selectAll(".dot")
       .data(data)
-    .enter().append("circle")
+      .enter()
+	  .append("circle")
       .attr("class", "dot")
-      .attr("r", function(d){return reviewScale(d.reviewCount)})
-	  
+      .attr("r", function(d){
+		  return reviewScale(d.reviewCount)
+	  })
       .attr("cx", xMap)
       .attr("cy", yMap)
       .style("fill", function(d){
 		return ratingScale(d.ratingCount)
-		})
-      .style("opacity",0.2)
+	  })
+      .style("opacity",0.1)
 	  .on("mouseover", function(d){console.log(d)})
 }
 
 function drawRestaurants(data, svg, width,height,projection){
-	//console.log(data[0]["lng"])
 	var width = width;
 	var height = height;
 	var projection = d3.geo.mercator()
-		.scale([480000])
+		.scale([450000])
 		.center([ -71.085,42.341])
 		.translate([width/2,height/2])
 	var reviewScale = d3.scale.linear()
@@ -148,16 +157,16 @@ function drawRestaurants(data, svg, width,height,projection){
 }
 
 
-function drawStreets(streets,svg,width,height,projection){
+function drawStreets(streets,svg,width,height,projection,className){
 	var width = width;
 	var height = height;
 	var projection = projection;	
 	var path = d3.geo.path()
 		.projection(projection)
-		
+	var className = className
 	var tip = d3.tip().attr('class', 'd3-tip').html(function(d){return d;});
 		
-	svg.selectAll("path")
+	svg.selectAll("path " + className)
         .data(streets.features)
         .enter()
         .append("path")
@@ -166,6 +175,5 @@ function drawStreets(streets,svg,width,height,projection){
 		.style("fill", "none")
         .style("stroke-width", .5)
         .style("stroke", function(d){
-		return "#000"
-				})	
+		return "#000"})	
 }
