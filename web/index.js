@@ -8,7 +8,8 @@ $(function() {
 		.defer(d3.json, "neighborhoods.geojson")
 		.defer(d3.json, "boston_streets.geojson")
 		.defer(d3.json, "somerville_streets.geojson")
-		.defer(d3.json,"noreviewcontent.json")
+		.defer(d3.json,"reviews_noreviewcontent.json")
+	
 		.await(dataDidLoad);
 })
 
@@ -30,11 +31,11 @@ function dataDidLoad(error,restaurantList,cambridge,boston,bostonStreets,somervi
 	drawStreets(boston,svg,width,height,projection,"boston")
 	drawStreets(bostonStreets,svg,width,height,projection,"bostonStreets")
 	drawStreets(somervilleStreets,svg,width,height,projection,"somervilleStreets")
-	
+	//console.log(restaurantList)
 	drawRestaurants(restaurantList,reviews,svg,width,height)
-	drawScatterPlot(restaurantList)
+	//drawScatterPlot(restaurantList)
 	
-	reviewsByRestaurant(reviews,restaurant)
+	//reviewsByRestaurant(reviews,restaurant)
 }
 
 
@@ -126,10 +127,9 @@ function reviewsByRestaurant(data,restaurant){
 		for(var i =0; i< data.length; i++){
 			//console.log(data[i])
 			rating = data[i][5]
-			
-		}
-	
+		}	
 }
+
 function drawRestaurants(data,reviews, svg, width,height,projection){
 	var width = width;
 	var height = height;
@@ -144,12 +144,14 @@ function drawRestaurants(data,reviews, svg, width,height,projection){
 	var ratingScale = d3.scale.linear()
 		.domain([2,4])
 		.range(["#0000ff","#ff0000"])
-		
+	
+	//console.log(data)
 	svg.selectAll("circle")
 		.data(data)
 		.enter()
 		.append("circle")
 		.attr("cx", function(d){
+			console.log(d[0])
 			return projection([parseFloat(d.lng),parseFloat(d.lat)])[0]
 		})
 		.attr("cy", function(d){
