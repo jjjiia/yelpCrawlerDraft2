@@ -34,24 +34,30 @@ function dataDidLoad(error,restaurantList,cambridge,boston,bostonStreets,somervi
 	var svg = d3.select("#map")
 			.append("svg")
 			.attr("width",width)
-			.attr("height",height);
-	drawStreets(cambridge,svg,width,height,projection, "cambridge", "green")
-	drawStreets(bostonStreets,svg,width,height,projection,"bostonStreets","#444")
-	drawStreets(somervilleStreets,svg,width,height,projection,"somervilleStreets", "red")
-	drawStreets(brooklineStreets,svg,width,height,projection,"brooklineStreets", "red")
+			.attr("height",height)
+	//drawStreets(cambridge,svg,width,height,projection, "cambridge", "green")
+	//drawStreets(bostonStreets,svg,width,height,projection,"bostonStreets","#444")
+	//drawStreets(somervilleStreets,svg,width,height,projection,"somervilleStreets", "red")
+	//drawStreets(brooklineStreets,svg,width,height,projection,"brooklineStreets", "red")
 	
 	//drawStreets(boston,svg,width,height,projection,"boston", "green")
 	//drawStreets(subwayLines,svg,width,height,projection,"subwayLines", "red")
 	//drawStreets(tracts,svg,width,height,projection,"tracts", "blue")
 	//drawStreets(simplified_boston,svg,width,height,projection,"simplified","#444")
 	//drawStreets(simplified_boston3,svg,width,height,projection,"simplified2","#444")
-	drawMap(reviews,restaurantList,svg)
 	//console.log(restaurantList)
 	//drawRestaurants(restaurantList,reviews,svg,width,height)
 	//drawScatterPlot(restaurantList)
 	//reviewsByRestaurant(reviews,restaurant)
-	drawByRating(reviews)
+	//drawByFriends(reviews,"userLocation")
+	
+	//drawByFriends(reviews,"reviewCount")
+	drawMap(reviews,restaurantList,svg,"all")
+	
+	drawByRating(reviews,restaurantList)
 	drawTimeline(reviews)
+	
+	filterData(reviews,"stars","4.0")
 }
 var table = {
 	group: function(rows, fields) {
@@ -251,30 +257,20 @@ function drawRestaurants(data,reviews, svg, width,height,projection){
 			reviewsByRestaurant(reviews,d.link)
 		})
 }
-
 function drawTimeline(data){
 	var timelineData = table.group(data,["date"])
 	var mostFrequent = table.maxCount(timelineData)
-	//console.log(timelineData)
 	var dateFormat = d3.time.format("%Y-%m-%d")
-	//console.log(dateFormat.parse("2011-01-01"))
 	var dateFrequency = []
 	for (var date in timelineData){
-		//console.log(dateFormat.parse(date))
-		//console.log(timelineData[date].length)
 		dateFrequency.push([dateFormat.parse(date),timelineData[date].length])
 	}
-	//console.log(dateFrequency.length)
 	var startDate = new Date((dateFormat.parse("2004-01-01")))
 	var endDate = new Date((dateFormat.parse("2014-12-01")))
-	//console.log(startDate,endDate)	
 	var dateScale = d3.time.scale().domain([startDate,endDate]).rangeRound([0, 900])
-	
 	var height = 200
-	//var dateScale = d3.time.scale.utc()
 	var yScale = d3.scale.linear().domain([0,5000]).range([0,height])
-	var timeline = d3.select("#timeline").append("svg").attr("width", 900).attr("height",200)
-		
+	var timeline = d3.select("#timeline").append("svg").attr("width", 900).attr("height",200)		
 	timeline.selectAll("rect")
 		.data(dateFrequency)
 		.enter()
@@ -292,71 +288,69 @@ function drawTimeline(data){
 		})
 		.style("fill", "#aaaaaa")
 		.on("mouseover",function(d,i){
-		//console.log(d,i)
+			//console.log(d)
 		})
 }
-function drawMap(data,restaurants,svg){
+function filterData(data,field,filter){
+	console.log("filter")
+	output = table.filter(table.group(data,[field]), function(list, rating){
+		return(rating == filter)
+	})
+	return output
+	//console.log(output)
+}
+function drawMap(data,restaurants,svg, className){
+	console.log(data)
 	var restaurantsByName= table.group(data, ["restaurant"])
 	var mostFrequent = table.maxCount(restaurantsByName)
-	//console.log(restaurants)
-		restaurantLocations = []
-		for(var i in restaurantsByName){
-			//console.log(i)
-			//console.log(restaurantsByName[i].length)
-			if(restaurants[i] != undefined){
-			//console.log(restaurants[i].lat)
-			restaurantLocations.push([i,restaurantsByName[i].length,parseFloat(restaurants[i].lat),parseFloat(restaurants[i].lng)])				
-			}
+	restaurantLocations = []
+	for(var i in restaurantsByName){
+		if(restaurants[i] != undefined){
+		restaurantLocations.push([i,restaurantsByName[i].length,parseFloat(restaurants[i].lat),parseFloat(restaurants[i].lng)])				
 		}
-		//console.log(restaurantLocations)
-		var tempData = [["test",23, -71.095,42.342]]
-		var width = 1400;
-		var height = 900;
-		var projection = d3.geo.mercator()
-			.scale([500000])
-			.center([ -71.095,42.342])
-			.translate([width/2,height/2])
-			
-		var reviewScale = d3.scale.linear()
-			.domain([1,2000])
-			.range([5,50])
-	
-		var ratingScale = d3.scale.linear()
-			.domain([2,4])
-			.range(["#0000ff","#ff0000"])
-		//console.log(restaurantLocations)
-		//console.log(data)
-		svg.selectAll("circle")
-			.data(restaurantLocations)
-			.enter()
-			.append("circle")
-			.attr("cx", function(d){
-				//return 300
-				//return projection([d[3],d[2]])[0]
-				//console.log(parseFloat(d[3]), parseFloat(d[2]))
-				return projection([parseFloat(d[3]),parseFloat(d[2])])[0]
+	}
+	var width = 1400;
+	var height = 900;
+	var projection = d3.geo.mercator()
+		.scale([500000])
+		.center([ -71.095,42.342])
+		.translate([width/2,height/2])
+		
+	var reviewScale = d3.scale.linear()
+		.domain([1,2000])
+		.range([5,50])
+
+	var ratingScale = d3.scale.linear()
+		.domain([2,4])
+		.range(["#0000ff","#ff0000"])
+
+	svg.selectAll("circle")
+		.data(restaurantLocations)
+		.enter()
+		.append("circle")
+		.attr("cx", function(d){
+			return projection([parseFloat(d[3]),parseFloat(d[2])])[0]
+		})
+		.attr("cy", function(d){
+			return projection([parseFloat(d[3]),parseFloat(d[2])])[1]
+		})
+		.attr("r", function(d){
+			if(isNaN(parseFloat(d[1]))){
+				return 0
+			}
+			else{
+			return reviewScale(parseFloat(d[1]))				
+			}
+		})
+        .style("fill", function(d){
+				return "red"
 			})
-			.attr("cy", function(d){
-				//return d[2]
-				//return 300
-				return projection([parseFloat(d[3]),parseFloat(d[2])])[1]
-			})
-			.attr("r", function(d){
-				if(isNaN(parseFloat(d[1]))){
-					return 0
-				}
-				else{
-				return reviewScale(parseFloat(d[1]))				
-				}
-			})
-	        .style("fill", function(d){
-					return "red"
-				})
-			.attr("opacity", 0.4)
-			.on("mouseover", function(d){
-				d3.select("#chart-title").html(d.name+"</br>"+d.reviewCount+" Reviews</br>"+d.ratingCount+" Stars</br>"+d.address)
-				//reviewsByRestaurant(reviews,d.link)
-			})
+		.attr("opacity", 0.4)
+		.attr("class", className)
+		.on("mouseover", function(d){
+			//d3.select("#chart-title").html(d.name+"</br>"+d.reviewCount+" Reviews</br>"+d.ratingCount+" Stars</br>"+d.address)
+			//reviewsByRestaurant(reviews,d.link)
+		})
 //	svg.selectAll("circle")
 //			.data(restaurantsByName)
 //			.enter()
@@ -368,7 +362,36 @@ function drawMap(data,restaurants,svg){
 //			.style("fill", "#aaaaaa")
 }
 
-function drawByRating(data){
+function jsonToArray(object){
+	var array = $.map(object, function(value,index){
+		return [[index,value.length]]
+	})
+	//console.log(array)
+	return array
+}
+
+function drawByFriends(data,field){
+	var restaurantsByFriends = table.group(data, [field])
+	var mostFrequent = table.maxCount(restaurantsByFriends)
+	var friendsArray = jsonToArray(restaurantsByFriends)
+	//for(var friendCount in restaurantsByFriends){
+	//	console.log(friendCount, restaurantsByFriends[friendCount].length)
+	//}
+	var xScale = d3.scale.linear().domain([0,4000]).range([0,400])
+	var yScale = d3.scale.sqrt().domain([0,mostFrequent.count]).range([0,200])
+	var friendsGraph = d3.select("#friends").append("svg").attr("width", 400).attr("height", 400)
+	friendsGraph.selectAll("rect")
+		.data(friendsArray)
+		.enter()
+		.append("rect")
+		.attr("x",function(d){return xScale(parseInt(d[0]))})
+		.attr("y",function(d){return 200-yScale(parseInt(d[1]))})
+		.attr("height", function(d){return yScale(parseInt(d[1]))})
+		.attr("width", function (d){return 1})
+		.style("fill", "#aaa")
+}
+
+function drawByRating(data,restaurants){
 	var restaurantsByStars = table.group(data, ["stars"])
 	var mostFrequent = table.maxCount(restaurantsByStars)
 	var ratings = [["1.0",restaurantsByStars["1.0"].length],
@@ -376,12 +399,13 @@ function drawByRating(data){
 		["3.0",restaurantsByStars["3.0"].length],
 		["4.0",restaurantsByStars["4.0"].length],
 		["5.0",restaurantsByStars["5.0"].length]]
-	var ratingsScale = d3.scale.linear().domain([0,mostFrequent.count]).range([0,400])
+	var ratingsScale = d3.scale.linear().domain([0,mostFrequent.count]).range([10,400])
 		//console.log(ratings)
 	var ratingsChart = d3.select("#charts")
 			.append("svg")
 			.attr("width",400)
 			.attr("height",400)
+		
 	ratingsChart.selectAll("rect")
 			.data(ratings)
 			.enter()
@@ -391,6 +415,13 @@ function drawByRating(data){
 			.attr("width",function(d){return ratingsScale(parseFloat(d[1]))})
 			.attr("height", function(d){return 18})
 			.style("fill", "#000")
+			.on("click", function(d){
+				var currentRating = d[0]
+				var currentData = filterData(data,"stars",currentRating)
+				d3.selectAll("#map svg circle").remove()
+				var svg = d3.select("#map svg")
+				drawMap(currentData,restaurants,svg,currentRating)
+			})
 	ratingsChart.selectAll("text")
 		.data(ratings)
 		.enter()
