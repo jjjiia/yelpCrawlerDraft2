@@ -35,10 +35,10 @@ function dataDidLoad(error,restaurantList,cambridge,boston,bostonStreets,somervi
 			.append("svg")
 			.attr("width",width)
 			.attr("height",height)
-	//drawStreets(cambridge,svg,width,height,projection, "cambridge", "green")
-	//drawStreets(bostonStreets,svg,width,height,projection,"bostonStreets","#444")
-	//drawStreets(somervilleStreets,svg,width,height,projection,"somervilleStreets", "red")
-	//drawStreets(brooklineStreets,svg,width,height,projection,"brooklineStreets", "red")
+	drawStreets(cambridge,svg,width,height,projection, "cambridge", "green")
+	drawStreets(bostonStreets,svg,width,height,projection,"bostonStreets","#444")
+	drawStreets(somervilleStreets,svg,width,height,projection,"somervilleStreets", "red")
+	drawStreets(brooklineStreets,svg,width,height,projection,"brooklineStreets", "red")
 	
 	//drawStreets(boston,svg,width,height,projection,"boston", "green")
 	//drawStreets(subwayLines,svg,width,height,projection,"subwayLines", "red")
@@ -55,7 +55,7 @@ function dataDidLoad(error,restaurantList,cambridge,boston,bostonStreets,somervi
 	drawMap(reviews,restaurantList,svg,"all")
 	
 	drawByRating(reviews,restaurantList)
-	drawTimeline(reviews)
+	drawTimeline(reviews,restaurantList)
 	
 	filterData(reviews,"stars","4.0")
 }
@@ -257,7 +257,7 @@ function drawRestaurants(data,reviews, svg, width,height,projection){
 			reviewsByRestaurant(reviews,d.link)
 		})
 }
-function drawTimeline(data){
+function drawTimeline(data, restaurants){
 	var timelineData = table.group(data,["date"])
 	var mostFrequent = table.maxCount(timelineData)
 	var dateFormat = d3.time.format("%Y-%m-%d")
@@ -270,7 +270,7 @@ function drawTimeline(data){
 	var dateScale = d3.time.scale().domain([startDate,endDate]).rangeRound([0, 900])
 	var height = 200
 	var yScale = d3.scale.linear().domain([0,5000]).range([0,height])
-	var timeline = d3.select("#timeline").append("svg").attr("width", 900).attr("height",200)		
+	var timeline = d3.select("#timeline").append("svg").attr("width", 900).attr("height",200)
 	timeline.selectAll("rect")
 		.data(dateFrequency)
 		.enter()
@@ -289,16 +289,64 @@ function drawTimeline(data){
 		.style("fill", "#aaaaaa")
 		.on("mouseover",function(d,i){
 			//console.log(d)
+			var currentDate = d[0]
+				console.log(d[0])
+				var currentMonth = currentDate.getMonth()+1
+				var currentDay = currentDate.getDay()+1
+				var currentYear = currentDate.getFullYear()
+				if (String(currentMonth).length ==1){
+					currentMonth = "0"+String(currentMonth)
+				}
+				if (String(currentDay).length ==1){
+					currentDay = "0"+String(currentDay)
+				}
+				var formatedDate = currentYear+"-"+currentMonth+"-"+currentDay
+					console.log(formatedDate)
+			var currentData = filterData(data,"date",formatedDate)
+			d3.selectAll("#map svg circle").remove()
+			var svg = d3.select("#map svg")
+			drawMap(currentData,restaurants,svg,currentDate)
 		})
 }
 function filterData(data,field,filter){
-	console.log("filter")
+	console.log("filter" + field)
 	output = table.filter(table.group(data,[field]), function(list, rating){
 		return(rating == filter)
 	})
 	return output
 	//console.log(output)
 }
+function drawRestaurantChart(data,restaurant){
+	var filter = restaurant;
+	var field = "restaurant";
+	var data = data;
+	var restaurantData = filterData(data,field,filter)
+	//var restaurantDataByDate = table.group(restaurantData,"date")
+	//console.log(restaurantDataByDate)
+	
+	var restaurantChart = d3.select("#chart-title").append("svg")
+	var restaurantDataArray = jsonToArray(restaurantData)
+		
+	restaurantChart.selectAll("rect")
+		.data(restaurantDataArray)
+		.enter()
+		.append("rect")
+		.attr("x", function(d){
+			console.log(d)
+			return 20		
+		})
+		.attr("y", function(d){
+			return 20		
+		})
+		.attr("width",function(d){
+			return 20		
+		})
+		.attr("height",function(d){
+			return 20		
+		})
+		.attr("fill", "#aaa")
+}
+
 function drawMap(data,restaurants,svg, className){
 	console.log(data)
 	var restaurantsByName= table.group(data, ["restaurant"])
@@ -348,7 +396,10 @@ function drawMap(data,restaurants,svg, className){
 		.attr("opacity", 0.4)
 		.attr("class", className)
 		.on("mouseover", function(d){
-			//d3.select("#chart-title").html(d.name+"</br>"+d.reviewCount+" Reviews</br>"+d.ratingCount+" Stars</br>"+d.address)
+			console.log(d)
+			d3.select("#chart-title").html(d[0]+"</br>"+d[1]+" reviews")
+			var restaurant = d[0]
+		//	drawRestaurantChart(data,restaurant)
 			//reviewsByRestaurant(reviews,d.link)
 		})
 //	svg.selectAll("circle")
@@ -369,7 +420,13 @@ function jsonToArray(object){
 	//console.log(array)
 	return array
 }
-
+function jsonToArrayNotLength(object){
+	var array = $.map(object, function(value,index){
+		return [[index,value]]
+	})
+	//console.log(array)
+	return array
+}
 function drawByFriends(data,field){
 	var restaurantsByFriends = table.group(data, [field])
 	var mostFrequent = table.maxCount(restaurantsByFriends)
