@@ -290,7 +290,6 @@ function drawTimeline(data, restaurants){
 		.on("mouseover",function(d,i){
 			//console.log(d)
 			var currentDate = d[0]
-				console.log(d[0])
 				var currentMonth = currentDate.getMonth()+1
 				var currentDay = currentDate.getDay()+1
 				var currentYear = currentDate.getFullYear()
@@ -301,12 +300,24 @@ function drawTimeline(data, restaurants){
 					currentDay = "0"+String(currentDay)
 				}
 				var formatedDate = currentYear+"-"+currentMonth+"-"+currentDay
-					console.log(formatedDate)
-			var currentData = filterData(data,"date",formatedDate)
+			//var currentData = filterData(data,"date",formatedDate)
+			//console.log(d)
+			//get current date to mouse
+			//get number of mouse date for before mouse		
+			var currentData	= table.filter(table.group(data, ["date"]), function(list, date) {
+				//year = currentYear 
+				var currentX = dateScale(d[0])
+				//console.log(date, new Date((dateFormat.parse(date))))
+				return (dateScale(new Date((dateFormat.parse(date)))) <= currentX)
+			})	
+			console.log(currentData.length)	
 			d3.selectAll("#map svg circle").remove()
 			var svg = d3.select("#map svg")
 			drawMap(currentData,restaurants,svg,currentDate)
 		})
+}
+function inOutOfState(date){
+	
 }
 function filterData(data,field,filter){
 	console.log("filter" + field)
@@ -348,7 +359,7 @@ function drawRestaurantChart(data,restaurant){
 }
 
 function drawMap(data,restaurants,svg, className){
-	console.log(data)
+	//console.log(data)
 	var restaurantsByName= table.group(data, ["restaurant"])
 	var mostFrequent = table.maxCount(restaurantsByName)
 	restaurantLocations = []
@@ -366,7 +377,7 @@ function drawMap(data,restaurants,svg, className){
 		
 	var reviewScale = d3.scale.linear()
 		.domain([1,2000])
-		.range([5,50])
+		.range([2,50])
 
 	var ratingScale = d3.scale.linear()
 		.domain([2,4])
