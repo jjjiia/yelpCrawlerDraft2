@@ -5,15 +5,16 @@ $(function() {
 	queue()
 		.defer(d3.json,"restaurants_2.json")
 		.defer(d3.json,"userLocations_clean1.json")
+	
 		.defer(d3.json, "geojson/cambridge_streets.geojson")
-		//.defer(d3.json, "geojson/neighborhoods.geojson")
 		.defer(d3.json, "geojson/boston_streets.geojson")
 		.defer(d3.json, "geojson/somerville_streets.geojson")
-		.defer(d3.csv,"reviews_coordinates_distance_2.csv")
-		.defer(d3.json, "geojson/subway_arcs.geojson")
-		//.defer(d3.json, "geojson/blockgroups.geojson")
-		.defer(d3.json, "geojson/brookline_streets.geojson")
-		.defer(d3.csv,"crunchbase_addnosize.csv")
+	
+		.defer(d3.csv,"cambridge_reviews.csv")
+		.defer(d3.csv,"boston_reviews.csv")
+		.defer(d3.csv,"brookline_reviews.csv")
+	
+		.defer(d3.json, "geojson/world.geojson")
 	
 		//.defer(d3.json, "geojson/boston_streets_simplified1.geojson")
 		//.defer(d3.json, "geojson/boston_streets_simplified4.geojson")
@@ -22,20 +23,18 @@ $(function() {
 		.await(dataDidLoad);
 })
 
-function dataDidLoad(error,restaurantList,userLocations,cambridge,bostonStreets,somervilleStreets,reviews,subwayLines,brooklineStreets,crunchbase) {
+function dataDidLoad(error,restaurantList,userLocations,cambridge,boston,brookline,cambridgereviews,Bostonreviews,Brooklinereviews,world) {
 	//console.log(line)	
 	//console.log(stops)
 	//console.log(userLocations)
 	var width = 1400;
 	var height = 900;
-	var center = [ -71.095,42.342]
-	var scale = 500000
-	var translate = [width/2,height/2]
+
 		
-	var projection = d3.geo.mercator()
-		.scale(scale)
-		.center(center)
-		.translate(translate)
+		var projection = d3.geo.mercator()
+			.scale([200])			
+			.center([ -40,0])
+			.translate([width/2,height/2])
 	
 	var svg = d3.select("#map")
 			.append("svg")
@@ -49,10 +48,14 @@ function dataDidLoad(error,restaurantList,userLocations,cambridge,bostonStreets,
 			.append("svg")
 			.attr("width",400)
 			.attr("height",400)	
-	drawStreets(cambridge,svg,width,height,projection, "cambridge", "#444",.3)
-	drawStreets(bostonStreets,svg,width,height,projection,"bostonStreets","#444",.3)
-	drawStreets(somervilleStreets,svg,width,height,projection,"somervilleStreets", "#444",.3)
-	drawStreets(brooklineStreets,svg,width,height,projection,"brooklineStreets", "#444",.3)
+//	drawStreets(cambridge,svg,width,height,projection, "cambridge", "#444",.5)
+//	drawStreets(bostonStreets,svg,width,height,projection,"bostonStreets","#444",.5)
+//	drawStreets(somervilleStreets,svg,width,height,projection,"somervilleStreets", "#444",.5)
+//	drawStreets(brooklineStreets,svg,width,height,projection,"brooklineStreets", "#444",.5)
+	drawStreets(world,svg,width,height,projection,"world", "#000",.5)
+			var colors = ["#CC7E33","#6ADC4E","#47CB96","#C7DE3D","#6AA341","#C4A62D","#E55B2F"]
+	
+	//drawStreets(boston,svg,width,height,projection,"boston", "green")
 		var subwayShow = false
 		
 		if(subwayShow == true){
@@ -62,45 +65,33 @@ function dataDidLoad(error,restaurantList,userLocations,cambridge,bostonStreets,
 		}
 	var userLocationsChart = d3.select("#distanceChart")
 			.append("svg")
-			.attr("width",600)
-			.attr("height",800)		
+			.attr("width",1200)
+			.attr("height",800)
 	//inOutOfState(reviews,userLocations,restaurantList,userLocationsChart)	
-	
-	//distanceScatterPlot(reviews,userLocations,restaurantList,userLocationsChart)
+	distanceScatterPlot(Bostonreviews,userLocations,restaurantList,userLocationsChart,"#47CB96")
+	drawArcs(Bostonreviews,restaurantList,svg, "arcs","#47CB96")
+		
+//	distanceScatterPlot(cambridgereviews,userLocations,restaurantList,userLocationsChart,"#6AA341")
+//	drawArcs(cambridgereviews,restaurantList,svg, "arcs","#6AA341")
+		
+//	distanceScatterPlot(Brooklinereviews,userLocations,restaurantList,userLocationsChart,"#CC7E33")
+//	drawArcs(Brooklinereviews,restaurantList,svg, "arcs","#CC7E33")
+		
 	//drawStreets(tracts,svg,width,height,projection,"tracts", "blue")
 	//drawStreets(simplified_boston,svg,width,height,projection,"simplified","#444")
-	//drawStreets(simplified_boston3,svg,width,height,projection,"simplified2","#444")
+	//drawStreets(simplified_boston3,svg,width,height,projection,"simplified2","#444").
 	//console.log(restaurantList)
 	//drawRestaurants(restaurantList,reviews,svg,width,height)
 	//drawScatterPlot(restaurantList)
 	//reviewsByRestaurant(reviews,restaurant)
 	//drawByFriends(reviews,"userLocation")
-	drawMap(reviews,restaurantList,svg,"all", center, scale, translate)
 	
-		var colors = ["#CC7E33","#6ADC4E","#47CB96","#C7DE3D","#6AA341","#C4A62D","#E55B2F"]
 	//drawByFriends(reviews,"reviewCount")
-			var sectors = ["biotech","web","software","advertising","enterprise","public_relations","finance","enterprise","social","mobile","other","education","travel","games_video","security","analytics","local","advertising","network_hosting","search","consulting","sports"]
-			for (var sector in sectors){
-				console.log(sectors[sector])
-				drawCompanies(crunchbase,svg, sectors[sector], center, scale, translate, sectors[sector], "#6ADC4E")
-				
-			}
-		
-//	drawCompanies(crunchbase,svg, "enterprise", center, scale, translate, "enterprise", "#C4A62D")
-//	drawCompanies(crunchbase,svg, "finance", center, scale, translate, "finance", "#C4A62D")
-//	drawCompanies(crunchbase,svg, "consulting", center, scale, translate, "consulting", "#C4A62D")
-//	drawCompanies(crunchbase,svg, "public_relations", center, scale, translate, "public_relations", "#C4A62D")
-				
-			
-	//drawCompanies(crunchbase,svg, "software", center, scale, translate, "software", "#6AA341")
-	//drawCompanies(crunchbase,svg, "mobile", center, scale, translate, "mobile", "#6AA341")
-	//drawCompanies(crunchbase,svg, "web", center, scale, translate, "web", "#6AA341")
-	//drawCompanies(crunchbase,svg, "social", center, scale, translate, "social", "#6AA341")
-	
+	//drawMap(reviews,restaurantList,svg,"all")
 	//drawByRating(reviews,restaurantList,ratingsChart)
-	drawTimeline(reviews,restaurantList)
+	//drawTimeline(reviews,restaurantList)
 	
-	filterData(reviews,"stars","4.0")
+	//filterData(reviews,"stars","4.0")
 }
 var table = {
 	group: function(rows, fields) {
@@ -256,12 +247,12 @@ function reviewsByRestaurant(data,restaurant){
 			rating = data[i][5]
 		}	
 }
-function drawRestaurants(data,reviews, svg, width,height,projection){
+/*function drawRestaurants(data,reviews, svg, width,height,projection){
 	var width = width;
 	var height = height;
 	var projection = d3.geo.mercator()
-		.scale([450000])
-		.center([ -71.085,42.341])
+		.scale([50000])
+		.center([ -71.085,42.342])
 		.translate([width/2,height/2])
 	var reviewScale = d3.scale.linear()
 		.domain([1,2000])
@@ -299,7 +290,7 @@ function drawRestaurants(data,reviews, svg, width,height,projection){
 			d3.select("#chart-title").html(d.name+"</br>"+d.reviewCount+" Reviews</br>"+d.ratingCount+" Stars</br>"+d.address)
 			reviewsByRestaurant(reviews,d.link)
 		})
-}
+}*/
 function drawTimeline(data, restaurants){
 	var width = 1400
 	var height = 100
@@ -360,18 +351,10 @@ function drawTimeline(data, restaurants){
 				return (dateScale(new Date((dateFormat.parse(date)))) <= currentX)
 			})	
 			//console.log(currentData.length)	
-			d3.selectAll("#map svg circle").remove()
-			var svg = d3.select("#map svg")
-			drawMap(currentData,restaurants,svg,currentDate)
+			//d3.selectAll("#map svg line").remove()
+			//var svg = d3.select("#map svg")			
+			//drawArcs(currentData,restaurantList,svg, "arcs")
 				
-			d3.selectAll("#charts svg rect").remove()
-			d3.selectAll("#charts svg text").remove()
-			var ratingsChartSvg = d3.select("#charts svg")
-			//drawByRating(currentData,restaurants,ratingsChartSvg)
-				
-			d3.selectAll("#userLocations svg rect").remove()
-			var ratingsChartSvg = d3.select("#userLocations svg")
-			//inOutOfState(data,locations,restaurants,svg)
 		})
 		.on("mouseout", function(){d3.select(this).attr("opacity",.5)})
 		
@@ -393,26 +376,46 @@ function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
   var d = R * c; // Distance in km
   return d;
 }
-function distanceScatterPlot(data, locations,restaurants,svg){
+function distanceScatterPlot(data, locations,restaurants,svg,color){
+	//console.log(data)
 	var restaurantsByStars = table.group(data, ["distance"])
 	var mostFrequent = table.maxCount(restaurantsByStars).count
+
 	var lineHeight = 10
-	var distanceScale = d3.scale.linear().domain([0,7000]).range([0,400])
-	var freqScale = d3.scale.linear().domain([0,mostFrequent]).range([0,50])
-		var data = jsonToArray(restaurantsByStars)
+	var distanceScale = d3.scale.linear().domain([0,9000]).range([40,700])
+	var freqScale = d3.scale.linear().domain([0,mostFrequent]).range([20,200])
+	var freqScaleReverse = d3.scale.linear().domain([0,mostFrequent]).range([200,20])
+	
+	var data = jsonToArray(restaurantsByStars)
+	var xAxis = d3.svg.axis().scale(distanceScale).ticks(10).orient("bottom")
+	var yAxis = d3.svg.axis().scale(freqScaleReverse).ticks(10).orient("left")
+		
 	svg.selectAll("circle")
 		.data(data)
 		.enter()
 		.append("circle")
+		.attr("opacity", .4)
 		.attr("cx",function(d){
 			return distanceScale(parseFloat(d[0]))
 		})
 		.attr("cy",function(d){
-			return 400-freqScale(parseFloat(d[1]))
+			return 200-freqScale(parseFloat(d[1]))
 		})
-		.attr("height",function(d){return freqScale(parseFloat(d[1]))})
-		.attr("width", function(d){return distanceScale(1)})
+		.attr("r", function(d){return 1})
+		.attr("fill", color)
+		.on("mouseover", function(d){console.log(d)})
+		
+   svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + 185 + ")")
+        .call(xAxis);
+   svg.append("g")
+        .attr("class", "y axis")
+        .attr("transform", "translate(25," + 0 + ")")
+        .call(yAxis);
 }
+
+
 function inOutOfState(data,locations,restaurants,svg){
 	var userLocations = table.group(data, ["userLocation"])
 	var mostFrequent = table.maxCount(userLocations)
@@ -504,54 +507,45 @@ function drawRestaurantChart(data,restaurant){
 		})
 		.attr("fill", "#aaa")
 }
-function drawCompanies(data,svg, className, center, scale, translate, sector, color){
-	var restaurantsByName= filterData(data,"sector",sector)
-	var mostFrequent = table.maxCount(restaurantsByName)
-	//console.log(restaurantsByName)
-	restaurantLocations = []
-	for(var i in restaurantsByName){
-		restaurantLocations.push([restaurantsByName[i].sector,restaurantsByName[i].company,restaurantsByName[i].employees,restaurantsByName[i].lat,restaurantsByName[i].lng])
-	}
+function drawArcs(data, restaurants,svg, className,color){
 	var width = 1400;
 	var height = 900;
 	var projection = d3.geo.mercator()
-		.scale([500000])
-		.center([ -71.095,42.342])
+		.scale([200])		
+		.center([ -40,0])
 		.translate([width/2,height/2])
+		//console.log(data)
+	var arcArray = []
+		for(var line in data){
+			var userCoordinates = [data[line].userLat,data[line].userLng]
+			var restCoordinates = [data[line].restLat,data[line].restLng]
+			arcArray.push([userCoordinates, restCoordinates])
+		}
+		//console.log(arcArray)
+	var line = d3.svg.line()
+		.interpolate("cardinal"); 
 		
-	var reviewScale = d3.scale.linear()
-		.domain([1,500])
-		.range([2,10])
-
-	var ratingScale = d3.scale.pow()
-		.domain([2,4])
-		.range(["#0000ff","#ff0000"])
-	var sector = "photo_video"
-	svg.selectAll("circle companies")
-		.data(restaurantLocations)
-		.enter()
-		.append("circle")
-		.attr("cx", function(d){
-			return projection([parseFloat(d[4]),parseFloat(d[3])])[0]
-		})
-		.attr("cy", function(d){
-			return projection([parseFloat(d[4]),parseFloat(d[3])])[1]
-		})
-		.attr("r", function(d){
-			//return 3
-				return reviewScale(parseFloat(d[2]))
-		})
-        .style("fill", function(d){
-				return "none"
-		})
-		.style("stroke",function(d){
-				return "#000"
-		})
-		.attr("opacity",.6)
-		.attr("class", className)
-		.on("mouseover", function(d){console.log(d)})
+	svg.selectAll("line")
+	.data(arcArray)
+	.enter()
+	.append("line")
+	.style("stroke", color)
+	.style("stroke-width",.5)
+	.style("opacity", .1)
+    .attr("x1", function(d,i){
+		return projection([parseFloat(d[0][0]),parseFloat(d[0][1])])[0]
+	})
+    .attr("y1",  function(d,i){
+		return projection([parseFloat(d[0][0]),parseFloat(d[0][1])])[1]
+	})
+    .attr("x2",  function(d,i){
+		return projection([parseFloat(d[1][0]),parseFloat(d[1][1])])[0]
+	})
+    .attr("y2",  function(d,i){
+		return projection([parseFloat(d[1][0]),parseFloat(d[1][1])])[1]
+	})
 }
-function drawMap(data,restaurants,svg, className, center, scale, translate){
+function drawMap(data,restaurants,svg, className){
 	//console.log(restaurants)
 	var restaurantsByName= table.group(data, ["restaurant"])
 	var mostFrequent = table.maxCount(restaurantsByName)
@@ -564,13 +558,13 @@ function drawMap(data,restaurants,svg, className, center, scale, translate){
 	var width = 1400;
 	var height = 900;
 	var projection = d3.geo.mercator()
-		.scale([500000])
-		.center([ -71.095,42.342])
+		.scale([400])		
+		.center([ -70.095,42.342])
 		.translate([width/2,height/2])
 		
 	var reviewScale = d3.scale.linear()
 		.domain([1,2000])
-		.range([2,50])
+		.range([1,10])
 
 	var ratingScale = d3.scale.pow()
 		.domain([2,4])
@@ -591,15 +585,15 @@ function drawMap(data,restaurants,svg, className, center, scale, translate){
 				return 0
 			}
 			else{
-			return reviewScale(parseFloat(d[1]))				
+			return reviewScale(parseFloat(d[1]))
 			}
 		})
         .style("fill", function(d){
 			   //console.log(d)
-			   //return ratingScale(d[2])
-				return "black"
+			   return ratingScale(d[2])
+				return "red"
 			})
-		.attr("opacity",.2)
+		.attr("opacity",.4)
 		.attr("class", className)
 		svg.selectAll("circle")
 			.on("mouseover", function(d){
@@ -698,7 +692,6 @@ function drawByRating(data,restaurants, svg){
 				var currentRestaurantData = filterData(data,"stars",d[0])
 				drawTimeline(currentRestaurantData, restaurants)
 			})
-
 	svg.selectAll("text")
 		.data(ratings)
 		.enter()
@@ -708,7 +701,6 @@ function drawByRating(data,restaurants, svg){
 		.attr("text-anchor","left")
 		.text(function(d){return d[0]+" : "+d[1]+", "+parseInt(d[1]/sum*100)+"%"})
 		.style("fill", "#000")
-			
 	svg.append("text")
 			.text("Stars | # Reviews")
 			.attr("x",0)

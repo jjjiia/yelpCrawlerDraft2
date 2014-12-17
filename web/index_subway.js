@@ -9,7 +9,7 @@ $(function() {
 		//.defer(d3.json, "geojson/neighborhoods.geojson")
 		.defer(d3.json, "geojson/boston_streets.geojson")
 		.defer(d3.json, "geojson/somerville_streets.geojson")
-		.defer(d3.csv,"reviews_coordinates_distance_2.csv")
+		.defer(d3.csv,"subway_split/Back Bay Station.csv")
 		.defer(d3.json, "geojson/subway_arcs.geojson")
 		//.defer(d3.json, "geojson/blockgroups.geojson")
 		.defer(d3.json, "geojson/brookline_streets.geojson")
@@ -82,7 +82,7 @@ function dataDidLoad(error,restaurantList,userLocations,cambridge,bostonStreets,
 			var sectors = ["biotech","web","software","advertising","enterprise","public_relations","finance","enterprise","social","mobile","other","education","travel","games_video","security","analytics","local","advertising","network_hosting","search","consulting","sports"]
 			for (var sector in sectors){
 				console.log(sectors[sector])
-				drawCompanies(crunchbase,svg, sectors[sector], center, scale, translate, sectors[sector], "#6ADC4E")
+				//drawCompanies(crunchbase,svg, sectors[sector], center, scale, translate, sectors[sector], "#6ADC4E")
 				
 			}
 		
